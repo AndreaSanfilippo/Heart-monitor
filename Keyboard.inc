@@ -156,8 +156,6 @@ key_pressed:
     ; [4][5][6][E]
     ; [7][8][9][D]
     ; [A][0][B][C]
-    ; For asterisk (*), we'll use 0x0E (14)
-    ; For hash (#), we'll use 0x0F (15)
     
     ; Use lookup table for mapping
     movwf   KeyPad_temp, a  ; Save calculated index
@@ -165,7 +163,7 @@ key_pressed:
     movwf   TBLPTRL, a
     movlw   high KeyPad_mapping
     movwf   TBLPTRH, a
-    movlw   upper KeyPad_mapping
+    movlw   high(high(KeyPad_mapping))
     movwf   TBLPTRU, a
     
     ; Add offset
