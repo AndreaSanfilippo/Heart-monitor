@@ -14,6 +14,7 @@ KeyPad_row:     ds  1   ; Stores the row of pressed key
 KeyPad_col:     ds  1   ; Stores the column of pressed key
 KeyPad_temp:    ds  1   ; Temporary storage
 KeyPad_result:  ds  1   ; Final keypad reading result
+KeyPad_cnt:     ds  1   ; Counter for delay loops
     
 ;*******************************************************************************
 ; Reset Vector
@@ -28,7 +29,7 @@ KeyPad_setup:
     movlb   0x0F            ; Bank 15 for special function registers
     
     ; Enable pull-up resistors for PORTE by setting REPU bit in PADCFG1
-    bsf     PADCFG1, 7      ; Set REPU bit (bit 7 of PADCFG1)
+    bsf     PADCFG1, 7, b   ; Set REPU bit (bit 7 of PADCFG1)
     
     ; Clear LATE register - sets all output pins to 0
     clrf    LATE, a
@@ -155,6 +156,8 @@ key_pressed:
     ; [4][5][6][E]
     ; [7][8][9][D]
     ; [A][0][B][C]
+    ; For asterisk (*), we'll use 0x0E (14)
+    ; For hash (#), we'll use 0x0F (15)
     
     ; Use lookup table for mapping
     movwf   KeyPad_temp, a  ; Save calculated index
@@ -185,16 +188,16 @@ key_pressed:
 KeyPad_find_first_zero:
     movwf   KeyPad_temp, a
     
-    btfss   KeyPad_temp, 0
+    btfss   KeyPad_temp, 0, a
     retlw   0
     
-    btfss   KeyPad_temp, 1
+    btfss   KeyPad_temp, 1, a
     retlw   1
     
-    btfss   KeyPad_temp, 2
+    btfss   KeyPad_temp, 2, a
     retlw   2
     
-    btfss   KeyPad_temp, 3
+    btfss   KeyPad_temp, 3, a
     retlw   3
     
     ; No zero found (should never happen if called correctly)
@@ -206,11 +209,12 @@ KeyPad_find_first_zero:
 KeyPad_delay:
     ; Simple delay loop - adjust as needed
     movlw   50
-delay_loop:
+    movwf   KeyPad_cnt, a   ; Use KeyPad_cnt as counter
+KeyPad_delay_loop:          ; Fix: Renamed label to be more specific
     nop
     nop
-    decfsz  WREG, w, a
-    bra     delay_loop
+    decfsz  KeyPad_cnt, f, a
+    goto    KeyPad_delay_loop  ; Fix: Use goto instead of bra for better compatibility
     return
     
 ;*******************************************************************************
@@ -218,9 +222,9 @@ delay_loop:
 ;*******************************************************************************
 psect   const
 KeyPad_mapping:
-    db      0x01, 0x02, 0x03, 0x0F  ; 1, 2, 3, F (row 0)
-    db      0x04, 0x05, 0x06, 0x0E  ; 4, 5, 6, E (row 1)
-    db      0x07, 0x08, 0x09, 0x0D  ; 7, 8, 9, D (row 2)
-    db      0x0A, 0x00, 0x0B, 0x0C  ; A, 0, B, C (row 3)
+    db      0x01, 0x02, 0x03, 0x0A  ; 1, 2, 3, F (row 0)
+    db      0x04, 0x05, 0x06, 0x0B  ; 4, 5, 6, E (row 1)
+    db      0x07, 0x08, 0x09, 0x0C  ; 7, 8, 9, D (row 2)
+    db      0x0E, 0x00, 0x0F, 0x0D  ; A, 0, B, C (row 3)
     
 end
