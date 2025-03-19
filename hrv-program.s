@@ -4,6 +4,9 @@
 ;*******************************************************************************
     
     #include <xc.inc>
+    #include "config.s"
+    #include "Lcd.inc"
+    #include "Keyboard.inc"
     
     ; External function declarations for LCD and Keypad modules
     extrn   LCD_Setup, LCD_Clear, LCD_Set_Position, LCD_Send_Byte_D
